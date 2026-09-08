@@ -35,14 +35,21 @@ function startBot() {
     setTimeout(startBot, 5000);
   });
 
-  // Anti-AFK - keep alive forever
+  // Anti-AFK - REAL MOVING
   setInterval(() => {
     try {
       if (client.entity) {
-        console.log('Keeping alive...');
+        // Swing arm so Aternos sees activity
+        client.write('animate', {
+          action_id: 1,
+          runtime_id: client.entity.runtimeId
+        });
+        console.log('Keeping alive... swing arm');
       }
-    } catch(e) {}
-  }, 60000);
+    } catch(e) {
+      console.log('AFK error', e.message);
+    }
+  }, 30000); // every 30 sec - keeps bot from getting kicked
 }
 
 startBot();
