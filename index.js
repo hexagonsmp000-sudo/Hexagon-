@@ -26,6 +26,23 @@ function startBot() {
 
   client.on('spawn', () => {
     console.log('✅ BOT SPAWNED SUCCESS! Bot is inside your SMP!');
+    
+    // Send message every 30 minutes
+    setInterval(() => {
+      try {
+        client.queue('text', {
+          type: 'chat',
+          needs_translation: false,
+          source_name: client.username,
+          xuid: '',
+          platform_chat_id: '',
+          message: 'Server is 24/7 ONLINE! ⚡'
+        });
+        console.log('Sent 24/7 message in chat');
+      } catch(e) {
+        console.log('Chat error:', e.message);
+      }
+    }, 30 * 60 * 1000); // 30 mins
   });
 
   client.on('text', (packet) => {
