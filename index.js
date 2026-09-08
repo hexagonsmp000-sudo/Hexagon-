@@ -8,8 +8,8 @@ const bedrock = require('bedrock-protocol');
 function start() {
  console.log('Trying to connect to play.hexagonsmp.fun:25571...');
  const client = bedrock.createClient({
-   host: 'play.hexagonsmp.fun',
-   port: 25571,
+  host: 'hexgonsmp.aternos.me',
+port: 14363,
    username: 'HexagonBot',
    offline: true
  });
