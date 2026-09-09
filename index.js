@@ -1,55 +1,47 @@
-const express = require('express');
-const app = express();
-app.get('/', (req, res) => res.send('Bot ONLINE'));
-app.listen(process.env.PORT || 10000);
+const mineflayer = require('mineflayer')
+const express = require('express')
+const app = express()
 
-const bedrock = require('bedrock-protocol');
+app.get('/', (req, res) => res.send('Bot is Alive!'))
+app.listen(3000, () => console.log('Web server started'))
 
-function startBot() {
-  console.log('Connecting...');
-  const client = bedrock.createClient({
-    host: 'hexgonsmp.aternos.me',
-    port: 14363,
-    username: 'HexagonBot_24x7',
-    offline: true,
-    skipPing: true
-  });
-
-  client.on('join', () => {
-    console.log('✅ BOT JOINED SUCCESS - Will never leave!');
-  });
-
-  client.on('spawn', () => {
-    console.log('✅ SPAWNED INSIDE SMP');
-  });
-
-  // NEVER disconnect on player join/leave
-  client.on('close', (reason) => {
-    console.log('Server closed:', JSON.stringify(reason));
-    console.log('Reconnecting in 5 sec...');
-    setTimeout(startBot, 5000);
-  });
-
-  client.on('error', (err) => {
-    console.log('Error, reconnecting...', err.message);
-    setTimeout(startBot, 5000);
-  });
-
-  // Anti-AFK - REAL MOVING
-  setInterval(() => {
-    try {
-      if (client.entity) {
-        // Swing arm so Aternos sees activity
-        client.write('animate', {
-          action_id: 1,
-          runtime_id: client.entity.runtimeId
-        });
-        console.log('Keeping alive... swing arm');
-      }
-    } catch(e) {
-      console.log('AFK error', e.message);
-    }
-  }, 30000); // every 30 sec - keeps bot from getting kicked
+const botConfig = {
+  host: 'hexgonsmp.aternos.me',
+  port: 14363,
+  username: 'HexgonBot',
+  version: false // auto version
 }
 
-startBot();
+function createBot() {
+  const bot = mineflayer.createBot(botConfig)
+
+  bot.on('spawn', () => {
+    console.log('Bot joined!')
+
+    // Anti-AFK - Move every 5 sec
+    setInterval(() => {
+      bot.setControlState('forward', true)
+      bot.setControlState('jump', true)
+      bot.look(Math.random() * 360, 0)
+      
+      setTimeout(() => {
+        bot.setControlState('forward', false)
+        bot.setControlState('jump', false)
+      }, 2000)
+    }, 10000)
+
+    // Chat every 20 min to show alive
+    setInterval(() => {
+      bot.chat('Bot is active - Server alive!')
+    }, 20 * 60 * 1000)
+  })
+
+  bot.on('end', () => {
+    console.log('Bot disconnected, reconnecting in 10 sec...')
+    setTimeout(createBot, 10000)
+  })
+
+  bot.on('error', (err) => console.log(err))
+}
+
+createBot()
