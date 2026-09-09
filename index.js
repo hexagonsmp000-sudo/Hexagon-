@@ -1,47 +1,41 @@
-const mineflayer = require('mineflayer')
+const bedrock = require('bedrock-protocol')
 const express = require('express')
 const app = express()
 
-app.get('/', (req, res) => res.send('Bot is Alive!'))
-app.listen(3000, () => console.log('Web server started'))
+app.get('/', (req,res) => res.send('Bot Online'))
+app.listen(3000, () => console.log('Web OK'))
 
-const botConfig = {
+const config = {
   host: 'hexgonsmp.aternos.me',
   port: 14363,
   username: 'HexgonBot',
-  version: false // auto version
+  offline: true
 }
 
-function createBot() {
-  const bot = mineflayer.createBot(botConfig)
-
-  bot.on('spawn', () => {
+function start() {
+  const client = bedrock.createClient(config)
+  
+  client.on('spawn', () => {
     console.log('Bot joined!')
-
-    // Anti-AFK - Move every 5 sec
     setInterval(() => {
-      bot.setControlState('forward', true)
-      bot.setControlState('jump', true)
-      bot.look(Math.random() * 360, 0)
-      
-      setTimeout(() => {
-        bot.setControlState('forward', false)
-        bot.setControlState('jump', false)
-      }, 2000)
-    }, 10000)
-
-    // Chat every 20 min to show alive
-    setInterval(() => {
-      bot.chat('Bot is active - Server alive!')
-    }, 20 * 60 * 1000)
+      client.queue('player_auth_input', {
+        pitch: Math.random()*20,
+        yaw: Math.random()*360,
+        position: client.entity.position,
+        move_vector: { x: Math.random()-0.5, z: Math.random()-0.5 },
+        head_yaw: Math.random()*360,
+        input_data: { _value: 0n },
+        input_mode: 'mouse',
+        play_mode: 'normal',
+        interaction_model: 'classic',
+        gaze_direction: undefined,
+        tick: 0n,
+        delta: { x:0, y:0, z:0 }
+      })
+    }, 5000)
   })
-
-  bot.on('end', () => {
-    console.log('Bot disconnected, reconnecting in 10 sec...')
-    setTimeout(createBot, 10000)
-  })
-
-  bot.on('error', (err) => console.log(err))
+  
+  client.on('close', () => setTimeout(start, 10000))
+  client.on('error', console.log)
 }
-
-createBot()
+start()
