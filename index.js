@@ -1,41 +1,38 @@
 const bedrock = require('bedrock-protocol')
 const express = require('express')
 const app = express()
-
-app.get('/', (req,res) => res.send('Bot Online'))
-app.listen(3000, () => console.log('Web OK'))
-
-const config = {
-  host: 'hexgonsmp.aternos.me',
-  port: 14363,
-  username: 'HexgonBot',
-  offline: true
-}
+app.get('/', (req,res) => res.send('Bot is Live'))
+app.listen(3000, () => console.log('Web OK - Service is live'))
 
 function start() {
-  const client = bedrock.createClient(config)
-  
-  client.on('spawn', () => {
-    console.log('Bot joined!')
-    setInterval(() => {
-      client.queue('player_auth_input', {
-        pitch: Math.random()*20,
-        yaw: Math.random()*360,
-        position: client.entity.position,
-        move_vector: { x: Math.random()-0.5, z: Math.random()-0.5 },
-        head_yaw: Math.random()*360,
-        input_data: { _value: 0n },
-        input_mode: 'mouse',
-        play_mode: 'normal',
-        interaction_model: 'classic',
-        gaze_direction: undefined,
-        tick: 0n,
-        delta: { x:0, y:0, z:0 }
-      })
-    }, 5000)
-  })
-  
-  client.on('close', () => setTimeout(start, 10000))
-  client.on('error', console.log)
+  console.log('Trying to connect to hexgonsmp.aternos.me:14363')
+  try {
+    const client = bedrock.createClient({
+      host: 'hexgonsmp.aternos.me',
+      port: 14363,
+      username: 'HexgonBot',
+      offline: true,
+      connectTimeout: 10000
+    })
+
+    client.on('spawn', () => {
+      console.log('Bot joined! Success!')
+    })
+
+    client.on('close', () => {
+      console.log('Server offline/closed, retrying in 10s...')
+      setTimeout(start, 10000)
+    })
+
+    client.on('error', (e) => {
+      console.log('Connect error:', e.message)
+      setTimeout(start, 10000)
+    })
+
+  } catch (e) {
+    console.log('Failed:', e.message)
+    setTimeout(start, 10000)
+  }
 }
+
 start()
