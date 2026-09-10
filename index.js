@@ -1,15 +1,11 @@
 const bedrock = require('bedrock-protocol')
 const express = require('express')
 
-// Keep Render alive
 const app = express()
-app.get('/', (req,res) => res.send('HexgonBot is Keeping Server ON - Timer Resets'))
-app.listen(3000, () => console.log('Web OK - Bot Service Live'))
-
-let botOnlineTime = 0
+app.get('/', (req,res) => res.send('HexgonBot 24/7 ONLINE'))
+app.listen(3000, () => console.log('Web OK'))
 
 function startBot() {
-  console.log('------------------------------------------------')
   console.log('Connecting to hexgonsmp.aternos.me:14363')
   
   const client = bedrock.createClient({
@@ -27,16 +23,16 @@ function startBot() {
   })
 
   client.on('spawn', () => {
-    botOnlineTime = Date.now()
-    console.log('✅ BOT JOINED! Aternos timer RESET! Server will stay ON')
-    console.log('Bot will stay for 4 minutes then rejoin to reset timer')
+    console.log('------------------------------------------------')
+    console.log('✅ BOT JOINED! Server will stay ON FOREVER')
+    console.log('Bot will NEVER leave now')
+    console.log('------------------------------------------------')
     
-    // Anti-AFK - just look around, safe no kick
-    const moveInterval = setInterval(() => {
+    setInterval(() => {
       tick++
       try {
         client.queue('player_auth_input', {
-          pitch: (Math.random()-0.5)*10,
+          pitch: (Math.random()-0.5)*20,
           yaw: Math.random()*360,
           position: pos,
           move_vector: { x: 0, z: 0 },
@@ -48,34 +44,24 @@ function startBot() {
           interact_rotation: { x: 0, z: 0 },
           tick: tick,
           delta: { x: 0, y: 0, z: 0 },
-          transaction: undefined,
-          item_stack_request: undefined,
-          block_actions: undefined,
-          vehicle_rotation: { x: 0, z: 0 },
-          analog_move_vector: { x: 0, z: 0 },
-          camera_orientation: { x: 0, y: 0, z: 0 },
-          raw_move_vector: { x: 0, z: 0 }
         })
       } catch(e) {}
-    }, 3000)
+    }, 2000)
 
-    // Stay 4 minutes then leave to reset timer cleanly
-    setTimeout(() => {
-      console.log('Bot leaving after 4 min, will rejoin in 20 sec to reset timer again')
-      clearInterval(moveInterval)
-      client.close()
-    }, 240000) // 4 minutes = 240000ms
+    // Send chat every 10 min so Aternos sees activity
+    setInterval(() => {
+      try { client.queue('text', { type: 'chat', message: 'HexgonBot keeping server alive!' }) } catch(e){}
+    }, 600000)
   })
 
   client.on('close', () => {
-    const onlineFor = Math.floor((Date.now() - botOnlineTime)/1000)
-    console.log(`Bot left after ${onlineFor}s. Aternos timer will start. Rejoining in 30 sec to RESET timer`)
-    setTimeout(startBot, 30000) // Rejoin after 30 sec - resets Aternos 5 min timer
+    console.log('Disconnected! Rejoining in 15 sec...')
+    setTimeout(startBot, 15000)
   })
 
   client.on('error', (e) => {
-    console.log('Error:', e.message, '- Retrying in 30 sec')
-    setTimeout(startBot, 30000)
+    console.log('Error:', e.message, ' - Rejoin in 15 sec')
+    setTimeout(startBot, 15000)
   })
 }
 
