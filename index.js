@@ -3,7 +3,7 @@ const express = require('express')
 
 const app = express()
 app.get('/', (req,res) => res.send('Bot is running - Server is UP'))
-app.listen(3000, () => console.log('Web server OK'))
+app.listen(process.env.PORT || 3000, () => console.log('Web server OK'))
 
 function startBot() {
   console.log('Trying to join hexgonsmp.aternos.me:14363')
@@ -29,8 +29,25 @@ function startBot() {
           head_yaw: yaw,
           position: client.position,
           move_vector: { x: 0, z: 1 },
-          input_data: { _value: 0n, is_sneaking: false },
+          input_data: { _value: 0, is_sneaking: false },
           input_mode: 'mouse',
           play_mode: 'screen',
           interaction_model: 'touch',
-          gaze
+          gaze: undefined,
+          interact_rotation: { x: 0, y: 0, z: 0 }
+        })
+      } catch {}
+    }, 1000)
+  })
+
+  client.on('close', () => {
+    console.log('Disconnected, retry in 10s')
+    setTimeout(startBot, 10000)
+  })
+
+  client.on('error', (e) => {
+    console.log('Error', e.message)
+  })
+}
+
+startBot()
